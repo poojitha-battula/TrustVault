@@ -78,6 +78,100 @@ public class DocumentController {
             return ResponseEntity.badRequest()
                     .body(Map.of("error", "Invalid filename"));
         }
+String lowerFilename = originalName.toLowerCase(
+        java.util.Locale.ROOT);
+
+if (!(lowerFilename.endsWith(".pdf")
+        || lowerFilename.endsWith(".txt")
+        || lowerFilename.endsWith(".png")
+        || lowerFilename.endsWith(".jpg")
+        || lowerFilename.endsWith(".jpeg"))) {
+    return ResponseEntity.badRequest()
+            .body(Map.of("error",
+                    "Only PDF, TXT, PNG, JPG and JPEG files are allowed"));
+}
+if (lowerFilename.endsWith(".pdf")) {
+    try {
+        byte[] header = file.getBytes();
+
+        if (header.length < 5
+                || header[0] != '%'
+                || header[1] != 'P'
+                || header[2] != 'D'
+                || header[3] != 'F'
+                || header[4] != '-') {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error",
+                            "Invalid PDF file content"));
+        }
+    } catch (IOException e) {
+        return ResponseEntity.badRequest()
+                .body(Map.of("error",
+                        "Unable to validate uploaded file"));
+    }
+}
+
+if (lowerFilename.endsWith(".png")
+        || lowerFilename.endsWith(".jpg")
+        || lowerFilename.endsWith(".jpeg")) {
+    try {
+        byte[] header = file.getBytes();
+
+        boolean validPng = header.length >= 8
+                && (header[0] & 0xFF) == 0x89
+                && header[1] == 0x50
+                && header[2] == 0x4E
+                && header[3] == 0x47
+                && header[4] == 0x0D
+                && header[5] == 0x0A
+                && header[6] == 0x1A
+                && header[7] == 0x0A;
+
+        boolean validJpeg = header.length >= 3
+                && (header[0] & 0xFF) == 0xFF
+                && (header[1] & 0xFF) == 0xD8
+                && (header[2] & 0xFF) == 0xFF;
+
+        if (!validPng && !validJpeg) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error",
+                            "Invalid image file content"));
+        }
+    } catch (IOException e) {
+        return ResponseEntity.badRequest()
+                .body(Map.of("error",
+                        "Unable to validate uploaded file"));
+    }
+}
+
+if (lowerFilename.endsWith(".txt")) {
+    try {
+        byte[] content = file.getBytes();
+
+        for (byte value : content) {
+            if (value == 0) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error",
+                                "Invalid text file content"));
+            }
+        }
+
+        java.nio.charset.StandardCharsets.UTF_8
+                .newDecoder()
+                .decode(java.nio.ByteBuffer.wrap(content));
+
+    } catch (java.nio.charset.CharacterCodingException e) {
+        return ResponseEntity.badRequest()
+                .body(Map.of("error",
+                        "Text file must contain valid UTF-8 text"));
+    } catch (IOException e) {
+        return ResponseEntity.badRequest()
+                .body(Map.of("error",
+                        "Unable to validate uploaded file"));
+    }
+}
+
+
 
         Path uploadDirectory =
                 Paths.get("uploads").toAbsolutePath().normalize();
@@ -136,8 +230,8 @@ public class DocumentController {
                     .body(Map.of("error", "Unable to upload document"));
         }
     }
-    
-  
+
+
     @GetMapping
     public ResponseEntity<?> getMyDocuments(
             org.springframework.security.core.Authentication authentication) {
@@ -159,7 +253,7 @@ public class DocumentController {
 
         return ResponseEntity.ok(result);
     }
-    
+
 
 
 @GetMapping("/search")
@@ -265,7 +359,7 @@ boolean hasEditPermission =
                 documentId, userEmail, "EDIT");
 
 if (!isOwner && !hasReadPermission && !hasEditPermission) {
-  
+
         auditLogService.log(userEmail, "DOWNLOAD_DENIED",
                 "Download denied for document ID: " + documentId);
 
@@ -273,14 +367,31 @@ if (!isOwner && !hasReadPermission && !hasEditPermission) {
                 .body(Map.of("error", "You do not have permission to download this document"));
     }
 
-    Path path = Paths.get(document.getFilePath());
+   Path uploadDirectory =
+        Paths.get("uploads").toAbsolutePath().normalize();
 
-    if (!Files.exists(path)) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(Map.of("error", "File not found on server"));
-    }
+Path path;
 
-    Resource resource = new FileSystemResource(path);
+try {
+    path = Paths.get(document.getFilePath())
+            .toAbsolutePath()
+            .normalize();
+} catch (RuntimeException e) {
+    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+            .body(Map.of("error", "Invalid document path"));
+}
+
+if (!path.startsWith(uploadDirectory)) {
+    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+            .body(Map.of("error", "Invalid document path"));
+}
+
+if (!Files.isRegularFile(path)) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(Map.of("error", "File not found on server"));
+}
+
+Resource resource = new FileSystemResource(path);
 
     auditLogService.log(userEmail, "DOCUMENT_DOWNLOAD",
             "Downloaded document: " + document.getName());
