@@ -1,4 +1,4 @@
-﻿# TrustVault â€” Secure Document Sharing with Audit Trail
+# TrustVault — Secure Document Sharing with Audit Trail
 
 ## About the Project
 
@@ -30,15 +30,15 @@ TrustVault is a secure document-sharing application developed using Java, Spring
 
 ```text
 TrustVault/
-â”œâ”€â”€ README.md
-â”œâ”€â”€ THREATS.md
-â”œâ”€â”€ PROMPTS.md
-â””â”€â”€ backend/
-    â””â”€â”€ backend/
-        â”œâ”€â”€ src/
-        â”‚   â”œâ”€â”€ main/
-        â”‚   â””â”€â”€ test/
-        â””â”€â”€ pom.xml
+├── README.md
+├── THREATS.md
+├── PROMPTS.md
+└── backend/
+    └── backend/
+        ├── src/
+        │   ├── main/
+        │   └── test/
+        └── pom.xml
 ```
 
 ## Prerequisites
@@ -71,7 +71,7 @@ Open PowerShell in the `backend/backend` directory.
 Set your database password for the current PowerShell session:
 
 ```powershell
-$env:DB_PASSWORD = "your-local-postgres-password"
+$env:DB_PASSWORD = "YOUR_LOCAL_DATABASE_PASSWORD"
 ```
 
 Replace the placeholder with your actual local password. Do not share it.

@@ -33,7 +33,3 @@ build/
 .vscode/
 uploads/
 *.txt
-# Environment secrets
-.env
-.env.*
-!.env.example
