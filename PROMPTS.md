@@ -1,4 +1,4 @@
-﻿# TrustVault - AI Prompt Log
+# TrustVault - AI Prompt Log
 
 This log was compiled retrospectively from the actual development and testing work. Summaries are used where the original prompt or response was not preserved verbatim.
 

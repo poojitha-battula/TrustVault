@@ -1,4 +1,4 @@
-# TrustVault — Secure Document Sharing with Audit Trail
+# TrustVault â€” Secure Document Sharing with Audit Trail
 
 ## About the Project
 
@@ -30,15 +30,15 @@ TrustVault is a secure document-sharing application developed using Java, Spring
 
 ```text
 TrustVault/
-├── README.md
-├── THREATS.md
-├── PROMPTS.md
-└── backend/
-    └── backend/
-        ├── src/
-        │   ├── main/
-        │   └── test/
-        └── pom.xml
+â”œâ”€â”€ README.md
+â”œâ”€â”€ THREATS.md
+â”œâ”€â”€ PROMPTS.md
+â””â”€â”€ backend/
+    â””â”€â”€ backend/
+        â”œâ”€â”€ src/
+        â”‚   â”œâ”€â”€ main/
+        â”‚   â””â”€â”€ test/
+        â””â”€â”€ pom.xml
 ```
 
 ## Prerequisites
@@ -119,3 +119,30 @@ The existing automated tests check authorization for administrative audit logs, 
 ## Project Status
 
 The backend implementation and automated security tests have been developed. Additional features and deployment requirements should be verified against the original hiring challenge specification.
+
+
+## Live Deployment
+
+Base URL: https://trustvault-z11k.onrender.com
+
+Health check: https://trustvault-z11k.onrender.com/api/health
+
+## API Endpoints
+
+All protected endpoints require authentication.
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| POST | `/api/auth/register` | Register a user |
+| POST | `/api/auth/login` | Log in |
+| GET | `/api/health` | Check API health |
+| POST | `/api/documents/upload` | Upload a document |
+| GET | `/api/documents/search` | Search accessible documents |
+| GET | `/api/documents/{id}/download` | Download a document |
+| PUT | `/api/documents/{id}` | Edit a document |
+| DELETE | `/api/documents/{id}` | Delete a document |
+| POST | `/api/documents/{id}/permissions` | Grant document permission |
+| DELETE | `/api/documents/{id}/permissions/{email}` | Revoke document permission |
+| GET | `/api/admin/audit-logs` | View audit logs as an administrator |
+
+**Note:** Confirm each endpoint's HTTP method and request format against the controller implementation before relying on this table. Document upload uses multipart form data; permission requests use JSON.
