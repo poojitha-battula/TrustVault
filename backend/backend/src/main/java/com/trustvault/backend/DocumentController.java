@@ -536,6 +536,9 @@ public ResponseEntity<?> deleteDocument(
         ));
 
     } catch (IOException | RuntimeException e) {
+        org.slf4j.LoggerFactory
+                .getLogger(DocumentController.class)
+                .error("Failed to delete document ID {}", documentId, e);
         return ResponseEntity.internalServerError()
                 .body(Map.of("error", "Unable to delete document"));
     }
