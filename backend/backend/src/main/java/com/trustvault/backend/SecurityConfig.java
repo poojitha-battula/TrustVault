@@ -18,11 +18,12 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                    "/api/health",
-                    "/api/auth/register",
-                    "/api/auth/login"
-                ).permitAll()
-                .anyRequest().authenticated()
+    "/", "/index.html", "/favicon.ico",
+    "/css/**", "/js/**", "/images/**",
+    "/api/health", "/api/auth/register", "/api/auth/login"
+)
+.permitAll()
+.anyRequest().authenticated()
             )
             .httpBasic(Customizer.withDefaults())
             .formLogin(form -> form.disable());

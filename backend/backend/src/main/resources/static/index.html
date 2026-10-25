@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrustVault | Secure Document Sharing</title>
+<style>
+:root {
+  --navy:#142b4a; --blue:#315bd6; --bg:#f4f7fb;
+  --text:#1c2c40; --muted:#65758b; --line:#e0e7f0;
+  --white:#fff; --green:#13845a; --red:#c33737;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+ font-family:Inter,Segoe UI,Arial,sans-serif}
+button,input,select{font:inherit}
+button{cursor:pointer;border:0;border-radius:8px;padding:11px 15px;
+ background:var(--blue);color:#fff;font-weight:600}
+button:disabled{opacity:.5;cursor:not-allowed}
+button.secondary{background:#e8eefb;color:var(--navy)}
+button.danger{background:#fff0f0;color:var(--red)}
+input,select{width:100%;padding:11px;border:1px solid #d3ddea;
+ border-radius:8px;background:white;color:var(--text)}
+label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
+.card{background:white;border:1px solid var(--line);border-radius:14px;
+ padding:22px;box-shadow:0 4px 16px #18395e08}
+.muted{color:var(--muted);font-size:13px}
+.topbar{background:var(--navy);color:#fff;padding:17px 5%;
+ display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{font-size:22px;font-weight:800;letter-spacing:-.5px}
+.brand span{color:#91b6ff}
+.container{max-width:1180px;margin:28px auto;padding:0 20px}
+.hidden{display:none!important}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.field{margin-bottom:15px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+h1{font-size:28px;margin:0 0 8px}
+h2{font-size:18px;margin:0 0 16px}
+p{line-height:1.5}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0}
+.tabs button{background:#e7edf7;color:#314863}
+.tabs button.active{background:var(--navy);color:white}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:13px 10px;border-bottom:1px solid var(--line);
+ vertical-align:top}
+th{font-size:12px;color:var(--muted);text-transform:uppercase}
+.badge{display:inline-block;border-radius:20px;padding:5px 9px;
+ background:#e8f7ef;color:#16744c;font-size:12px;font-weight:700}
+#notice{padding:12px 15px;border-radius:9px;margin:15px 0;display:none;
+ overflow-wrap:anywhere}
+#notice.ok{display:block;background:#e7f7ee;color:#146d48}
+#notice.err{display:block;background:#fff0f0;color:#a32222}
+#login{max-width:440px;margin:60px auto}
+#login .brand{color:var(--navy);margin-bottom:10px}
+.stat{font-size:25px;font-weight:800}
+.stat-label{font-size:13px;color:var(--muted);margin-top:5px}
+.small{font-size:12px}
+@media(max-width:760px){
+ .grid{grid-template-columns:1fr}
+ .container{padding:0 12px;margin:16px auto}
+ .card{padding:16px}
+ h1{font-size:24px}
+ .topbar{padding:15px 4%}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">Trust<span>Vault</span></div>
+  <div class="actions">
+    <span id="who" class="small"></span>
+    <button id="logout" class="secondary hidden" onclick="logout()">Sign out</button>
+  </div>
+</header>
+
+<main class="container">
+  <section id="login" class="card">
+    <div class="brand">Trust<span>Vault</span></div>
+    <p class="muted">Secure document sharing with access control and an audit trail.</p>
+    <h2>Sign in</h2>
+    <form id="loginForm">
+      <div class="field">
+        <label for="email">Email address</label>
+        <input id="email" type="email" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" required>
+      </div>
+      <button type="submit" style="width:100%">Sign in</button>
+    </form>
+    <p class="muted small">Use your existing TrustVault account. Passwords are kept only in this page's memory and are not saved to local storage.</p>
+  </section>
+
+  <section id="app" class="hidden">
+    <h1>Document workspace</h1>
+    <p class="muted">Manage documents according to your assigned permissions.</p>
+
+    <div id="notice" role="status" aria-live="polite"></div>
+
+    <div class="grid">
+      <article class="card">
+        <h2>Upload a document</h2>
+        <form id="uploadForm">
+          <div class="field">
+            <label for="file">Choose file</label>
+            <input id="file" type="file" required>
+          </div>
+          <div class="field">
+            <label for="category">Category</label>
+            <input id="category" required maxlength="100" placeholder="e.g. Reports">
+          </div>
+          <button type="submit">Upload document</button>
+        </form>
+      </article>
+
+      <article class="card">
+        <h2>Find documents</h2>
+        <form id="searchForm">
+          <div class="field">
+            <label for="searchName">Document name</label>
+            <input id="searchName" placeholder="Enter a filename">
+          </div>
+          <div class="grid">
+            <div class="field">
+              <label for="searchOwner">Owner email</label>
+              <input id="searchOwner" placeholder="Optional">
+            </div>
+            <div class="field">
+              <label for="searchCategory">Category</label>
+              <input id="searchCategory" placeholder="Optional">
+            </div>
+          </div>
+          <div class="actions">
+            <button type="submit">Search</button>
+            <button type="button" class="secondary" onclick="loadDocuments()">Show accessible documents</button>
+          </div>
+        </form>
+      </article>
+    </div>
+
+    <nav class="tabs">
+      <button class="active" data-tab="documents" onclick="showTab('documents',this)">Documents</button>
+      <button data-tab="permissions" onclick="showTab('permissions',this)">Permissions</button>
+      <button data-tab="audit" onclick="showTab('audit',this)">Audit logs (Admin)</button>
+    </nav>
+
+    <section id="documents" class="card">
+      <div class="actions" style="justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">Your accessible documents</h2>
+        <button class="secondary" onclick="loadDocuments()">Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>ID</th><th>Name</th><th>Category</th><th>Owner</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="documentRows">
+            <tr><td colspan="5">Sign in to load documents.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="permissions" class="card hidden">
+      <h2>Document permissions</h2>
+      <p class="muted">Only the document owner should be able to grant or revoke permissions.</p>
+      <form id="permissionForm">
+        <div class="grid">
+          <div class="field">
+            <label for="permissionDoc">Document ID</label>
+            <input id="permissionDoc" type="number" min="1" required>
+          </div>
+          <div class="field">
+            <label for="permissionEmail">User email</label>
+            <input id="permissionEmail" type="email" required>
+          </div>
+        </div>
+        <div class="field">
+          <label for="permissionType">Permission</label>
+          <select id="permissionType"><option value="READ">READ</option><option value="EDIT">EDIT</option></select>
+        </div>
+        <div class="actions">
+          <button type="submit">Grant permission</button>
+          <button type="button" class="danger" onclick="revokePermission()">Revoke permission</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="audit" class="card hidden">
+      <div class="actions" style="justify-content:space-between;align-items:center">
+        <h2>Administrative audit trail</h2>
+        <button onclick="loadAudit()">Refresh logs</button>
+      </div>
+      <p class="muted">Admin access is required. Unauthorized actions should not expose the audit trail.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Actor</th><th>Action</th><th>Details</th><th>Time</th></tr></thead>
+          <tbody id="auditRows"><tr><td colspan="5">Select this tab to load logs.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </section>
+</main>
+
+<script>
+let credentials = null;
+let documents = [];
+
+const el = id => document.getElementById(id);
+const safe = value => String(value ?? "").replace(/[&<>"']/g, c => ({
+  "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+}[c]));
+
+function notify(message, ok=false) {
+  const n=el("notice");
+  n.textContent=message;
+  n.className=ok?"ok":"err";
+}
+function clearNotice() {
+  el("notice").style.display="none";
+}
+async function api(path, options={}) {
+  if (!credentials) throw new Error("Please sign in first.");
+  const headers = new Headers(options.headers || {});
+  headers.set("Authorization", "Basic " + btoa(unescape(encodeURIComponent(
+    credentials.email + ":" + credentials.password
+  ))));
+  const response = await fetch(path, {...options, headers});
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error("HTTP " + response.status + (body ? ": " + body.slice(0,180) : ""));
+  }
+  if (response.status === 204) return null;
+  const type=response.headers.get("content-type") || "";
+  return type.includes("application/json") ? response.json() : response;
+}
+
+el("loginForm").addEventListener("submit", async event => {
+  event.preventDefault();
+
+  const email = el("email").value.trim();
+  const password = el("password").value;
+
+  try {
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email, password })
+    });
+
+    const body = await response.json();
+
+    if (!response.ok) {
+      throw new Error(body.error || "HTTP " + response.status);
+    }
+
+    credentials = { email, password };
+
+    el("login").classList.add("hidden");
+    el("app").classList.remove("hidden");
+    el("logout").classList.remove("hidden");
+    el("who").textContent = body.name || email;
+
+    notify("Login successful.", true);
+    await loadDocuments();
+
+  } catch (error) {
+    credentials = null;
+    alert("Sign-in failed: " + error.message);
+  }
+});
+
+function logout() {
+  credentials=null;
+  documents=[];
+  el("app").classList.add("hidden");
+  el("login").classList.remove("hidden");
+  el("logout").classList.add("hidden");
+  el("who").textContent="";
+  el("password").value="";
+  el("documentRows").innerHTML='<tr><td colspan="5">Sign in to load documents.</td></tr>';
+  clearNotice();
+}
+
+function showTab(tab,button) {
+  ["documents","permissions","audit"].forEach(id=>el(id).classList.toggle("hidden",id!==tab));
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("active",b===button));
+  if(tab==="documents") loadDocuments();
+  if(tab==="audit") loadAudit();
+}
+
+function renderDocuments(data) {
+  documents=Array.isArray(data)?data:(Array.isArray(data?.content)?data.content:[]);
+  const body=el("documentRows");
+  if(!documents.length) {
+    body.innerHTML='<tr><td colspan="5">No accessible documents found.</td></tr>';
+    return;
+  }
+  body.innerHTML=documents.map(d=>`<tr>
+    <td>${safe(d.id)}</td>
+    <td>${safe(d.name)}</td>
+    <td>${safe(d.category)}</td>
+    <td>${safe(d.ownerEmail)}</td>
+    <td><div class="actions">
+      <button onclick="downloadDocument(${Number(d.id)})">Download</button>
+      <button class="secondary" onclick="editDocument(${Number(d.id)})">Edit</button>
+      <button class="danger" onclick="deleteDocument(${Number(d.id)})">Delete</button>
+      <button class="secondary" onclick="fillPermission(${Number(d.id)})">Permissions</button>
+    </div></td>
+  </tr>`).join("");
+}
+
+async function loadDocuments() {
+  try {
+    renderDocuments(await api("/api/documents"));
+    notify("Accessible documents loaded.",true);
+  } catch(error) { notify("Could not load documents: "+error.message); }
+}
+
+el("searchForm").addEventListener("submit", async event=>{
+  event.preventDefault();
+  const params=new URLSearchParams();
+  const fields={name:"searchName",owner:"searchOwner",category:"searchCategory"};
+  for(const [key,id] of Object.entries(fields)) {
+    const value=el(id).value.trim();
+    if(value) params.set(key,value);
+  }
+  try {
+    const data=await api("/api/documents/search"+(params.size?"?"+params.toString():""));
+    renderDocuments(data);
+    notify("Search request completed.",true);
+    showTab("documents",document.querySelector('[data-tab="documents"]'));
+  } catch(error) { notify("Search failed: "+error.message); }
+});
+
+el("uploadForm").addEventListener("submit", async event=>{
+  event.preventDefault();
+  const file=el("file").files[0];
+  if(!file) return notify("Choose a file first.");
+  if(file.size>5*1024*1024) return notify("File must be 5 MB or smaller.");
+  const form=new FormData();
+  form.append("file",file);
+  form.append("category",el("category").value.trim());
+  try {
+    await api("/api/documents/upload",{method:"POST",body:form});
+    notify("Upload completed.",true);
+    el("uploadForm").reset();
+    await loadDocuments();
+  } catch(error) { notify("Upload failed: "+error.message); }
+});
+
+async function downloadDocument(id) {
+  try {
+    const response=await api(`/api/documents/${id}/download`);
+    const blob=await response.blob();
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url; a.download="document-"+id; a.click();
+    URL.revokeObjectURL(url);
+    notify("Download completed.",true);
+  } catch(error) { notify("Download failed: "+error.message); }
+}
+
+async function editDocument(id) {
+  const doc=documents.find(d=>Number(d.id)===Number(id));
+  if(!doc) return notify("Document details not found.");
+  const name=prompt("New document name:",doc.name);
+  if(name===null) return;
+  const category=prompt("New category:",doc.category||"");
+  if(category===null) return;
+  try {
+    await api(`/api/documents/${id}`,{
+      method:"PUT",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({name:name.trim(),category:category.trim()})
+    });
+    notify("Edit request completed.",true);
+    await loadDocuments();
+  } catch(error) { notify("Edit failed: "+error.message); }
+}
+
+async function deleteDocument(id) {
+  if(!confirm("Delete document "+id+"? This cannot be undone.")) return;
+  try {
+    await api(`/api/documents/${id}`,{method:"DELETE"});
+    notify("Delete completed.",true);
+    await loadDocuments();
+  } catch(error) { notify("Delete failed: "+error.message); }
+}
+
+function fillPermission(id) {
+  el("permissionDoc").value=id;
+  showTab("permissions",document.querySelector('[data-tab="permissions"]'));
+}
+
+el("permissionForm").addEventListener("submit",async event=>{
+  event.preventDefault();
+  const id=el("permissionDoc").value;
+  const userEmail=el("permissionEmail").value.trim();
+  const permissionType=el("permissionType").value;
+  try {
+    await api(`/api/documents/${id}/permissions`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({userEmail,permissionType})
+    });
+    notify("Permission grant request completed.",true);
+  } catch(error) { notify("Grant failed: "+error.message); }
+});
+
+async function revokePermission() {
+  const id=el("permissionDoc").value;
+  const email=el("permissionEmail").value.trim();
+  if(!id||!email) return notify("Enter document ID and user email.");
+  if(!confirm("Revoke permission for "+email+" on document "+id+"?")) return;
+  try {
+    await api(`/api/documents/${id}/permissions/${encodeURIComponent(email)}`,{method:"DELETE"});
+    notify("Permission revoke request completed.",true);
+  } catch(error) { notify("Revoke failed: "+error.message); }
+}
+
+async function loadAudit() {
+  try {
+    const data=await api("/api/admin/audit-logs");
+    const rows=Array.isArray(data)?data:[];
+    el("auditRows").innerHTML=rows.length?rows.map(a=>`<tr>
+      <td>${safe(a.id)}</td><td>${safe(a.actorEmail)}</td>
+      <td>${safe(a.action)}</td><td>${safe(a.details)}</td>
+      <td>${safe(a.createdAt)}</td></tr>`).join("")
+      :'<tr><td colspan="5">No audit records found.</td></tr>';
+    notify("Audit logs loaded.",true);
+  } catch(error) {
+    notify("Audit logs unavailable: "+error.message+" (Admin access required.)");
+  }
+}
+</script>
+</body>
+</html>
