@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -486,6 +487,7 @@ public ResponseEntity<?> editDocument(
             "category", saved.getCategory()
     ));
 }
+@Transactional
 @DeleteMapping("/{documentId}")
 public ResponseEntity<?> deleteDocument(
         @PathVariable Long documentId,
