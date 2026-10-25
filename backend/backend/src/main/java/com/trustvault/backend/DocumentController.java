@@ -234,14 +234,28 @@ if (lowerFilename.endsWith(".txt")) {
 
     @GetMapping
     public ResponseEntity<?> getMyDocuments(
-            org.springframework.security.core.Authentication authentication) {
+            Authentication authentication) {
 
-        String ownerEmail = authentication.getName()
-                .trim().toLowerCase();
+        String userEmail = authentication.getName()
+                .trim()
+                .toLowerCase();
 
-        var documents = documentRepository.findByOwnerEmail(ownerEmail);
+        var owned = documentRepository.findByOwnerEmail(userEmail);
+        var permissions = permissionRepository.findByUserEmail(userEmail);
 
-        var result = documents.stream()
+        var sharedIds = permissions.stream()
+                .filter(p -> "READ".equalsIgnoreCase(p.getPermission())
+                        || "EDIT".equalsIgnoreCase(p.getPermission()))
+                .map(p -> p.getDocumentId())
+                .toList();
+
+        var shared = documentRepository.findAllById(sharedIds);
+
+        java.util.Map<Long, Document> all = new java.util.LinkedHashMap<>();
+        owned.forEach(doc -> all.put(doc.getId(), doc));
+        shared.forEach(doc -> all.put(doc.getId(), doc));
+
+        var result = all.values().stream()
                 .map(doc -> Map.of(
                         "id", doc.getId(),
                         "name", doc.getName(),
