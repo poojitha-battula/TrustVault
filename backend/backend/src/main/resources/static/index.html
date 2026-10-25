@@ -407,7 +407,7 @@ el("permissionForm").addEventListener("submit",async event=>{
     await api(`/api/documents/${id}/permissions`,{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({userEmail,permissionType})
+      body: JSON.stringify({ userEmail, permission: permissionType })
     });
     notify("Permission grant request completed.",true);
   } catch(error) { notify("Grant failed: "+error.message); }
