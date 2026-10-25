@@ -28,7 +28,10 @@ public class AuthController {
         String name = request.get("name");
         String email = request.get("email");
         String password = request.get("password");
-        String role = "VIEWER";
+        String requestedRole = request.get("role");
+        String role = requestedRole == null || requestedRole.isBlank()
+                ? "VIEWER"
+                : requestedRole.trim().toUpperCase(java.util.Locale.ROOT);
 
         if (name == null || name.isBlank()
                 || email == null || email.isBlank()
@@ -39,6 +42,12 @@ public class AuthController {
         }
 
 
+
+        if (!"VIEWER".equals(role) && !"OWNER".equals(role)) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Public registration supports only OWNER or VIEWER; ADMIN accounts are provisioned separately"
+            ));
+        }
 
         email = email.trim().toLowerCase();
 

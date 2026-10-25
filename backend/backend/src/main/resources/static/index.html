@@ -108,6 +108,13 @@ th{font-size:12px;color:var(--muted);text-transform:uppercase}
         <label for="regPassword">Password (at least 8 characters)</label>
         <input id="regPassword" type="password" required minlength="8" autocomplete="new-password">
       </div>
+      <div class="field">
+        <label for="regRole">Account role</label>
+        <select id="regRole" required>
+          <option value="VIEWER" selected>Viewer - read permitted documents</option>
+          <option value="OWNER">Owner - upload and manage own documents</option>
+        </select>
+      </div>
 
       <button type="submit" class="secondary" style="width:100%">Create account</button>
     </form>
@@ -121,7 +128,7 @@ th{font-size:12px;color:var(--muted);text-transform:uppercase}
     <div id="notice" role="status" aria-live="polite"></div>
 
     <div class="grid">
-      <article class="card">
+      <article class="card" id="uploadCard">
         <h2>Upload a document</h2>
         <form id="uploadForm">
           <div class="field">
@@ -264,7 +271,8 @@ el("registerForm").addEventListener("submit", async event => {
   const payload = {
     name: el("regName").value.trim(),
     email: el("regEmail").value.trim(),
-    password: el("regPassword").value
+    password: el("regPassword").value,
+    role: el("regRole").value
   };
 
   try {
@@ -285,6 +293,7 @@ el("registerForm").addEventListener("submit", async event => {
     el("regName").value = "";
     el("regEmail").value = "";
     el("regPassword").value = "";
+    el("regRole").value = "VIEWER";
 
   } catch (error) {
     alert("Registration failed: " + error.message);
@@ -315,6 +324,10 @@ el("loginForm").addEventListener("submit", async event => {
 
     el("login").classList.add("hidden");
     el("app").classList.remove("hidden");
+    el("uploadCard").classList.toggle(
+        "hidden",
+        String(body.role || "").toUpperCase() !== "OWNER"
+    );
     el("logout").classList.remove("hidden");
     el("who").textContent = body.name || email;
 

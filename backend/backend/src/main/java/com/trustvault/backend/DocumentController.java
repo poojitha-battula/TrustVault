@@ -189,6 +189,25 @@ if (lowerFilename.endsWith(".txt")) {
                         .body(Map.of("error", "Invalid filename"));
             }
 
+            boolean ownerRole = authentication.getAuthorities().stream()
+                    .anyMatch(authority ->
+                            "ROLE_OWNER".equals(authority.getAuthority()));
+
+            if (!ownerRole) {
+                String uploadActorEmail = authentication.getName()
+                        .trim().toLowerCase();
+                auditLogService.log(
+                        uploadActorEmail,
+                        "DOCUMENT_UPLOAD_DENIED",
+                        "Upload denied: account is not an owner"
+                );
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of(
+                                "error",
+                                "Only owner accounts can upload documents"
+                        ));
+            }
+
             file.transferTo(destination);
 
             String ownerEmail = authentication.getName()
