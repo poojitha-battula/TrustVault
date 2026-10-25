@@ -10,6 +10,7 @@ public interface DocumentPermissionRepository
         extends JpaRepository<DocumentPermission, Long> {
 
     List<DocumentPermission> findByDocumentId(Long documentId);
+    List<DocumentPermission> findByUserEmail(String userEmail);
     void deleteByDocumentId(Long documentId);
 
     Optional<DocumentPermission> findByDocumentIdAndUserEmail(
