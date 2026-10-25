@@ -1,148 +1,117 @@
-# TrustVault â€” Secure Document Sharing with Audit Trail
+# TrustVault — Secure Document Sharing with an Audit Trail
 
-## About the Project
+TrustVault is a Spring Boot and PostgreSQL application for uploading, finding, sharing, and managing documents with document-level permissions and audit logging.
 
-TrustVault is a secure document-sharing application developed using Java, Spring Boot, and PostgreSQL. It helps users upload, manage, search, download, and share documents securely. The application uses authentication, role-based access control, document permissions, and audit logging to protect sensitive information.
+**Live application:** https://trustvault-z11k.onrender.com  
+**Source repository:** https://github.com/poojitha-battula/TrustVault
 
-## Key Features
+## Features
 
-- User registration and login
-- Secure password storage using BCrypt
-- Role-based access for users and administrators
-- Document upload, listing, search, download, editing, and deletion
-- Document-level READ and EDIT permissions
-- Granting and revoking document permissions
-- Audit logs for document activities and permission changes
-- Restricted access to administrator audit logs
-- File upload size validation and filename sanitization
+- User registration and login with passwords stored using BCrypt.
+- Role-based authorization for viewers and administrators.
+- Document upload, listing, search, download, edit, and owner-only deletion.
+- Document-level `READ` and `EDIT` grants that the owner can revoke.
+- Authorization checks for document downloads and edits; only the owner can delete a document or change its permissions.
+- Search filters for document name, owner, category, and upload date range.
+- Audit events for document activity, permission changes, and relevant denied operations.
+- Administrator-only audit-log access.
+- Upload restrictions: maximum 5 MB; allowed extensions are PDF, TXT, PNG, JPG, and JPEG; file-name handling and basic file-content checks are applied.
 
-## Technologies Used
+## Technology
 
-- **Programming Language:** Java
-- **Backend Framework:** Spring Boot
-- **Database:** PostgreSQL
-- **Data Access:** Spring Data JPA and Hibernate
-- **Security:** Spring Security and BCrypt
-- **Testing:** JUnit and Spring Boot test support
-- **Build Tool:** Maven
+- Java 21
+- Spring Boot
+- Spring Security and BCrypt
+- Spring Data JPA / Hibernate
+- PostgreSQL
+- Maven and JUnit / Spring Boot Test
 
-## Project Structure
+## Repository layout
 
 ```text
 TrustVault/
-â”œâ”€â”€ README.md
-â”œâ”€â”€ THREATS.md
-â”œâ”€â”€ PROMPTS.md
-â””â”€â”€ backend/
-    â””â”€â”€ backend/
-        â”œâ”€â”€ src/
-        â”‚   â”œâ”€â”€ main/
-        â”‚   â””â”€â”€ test/
-        â””â”€â”€ pom.xml
+├── README.md
+├── THREATS.md
+├── PROMPTS.md
+└── backend/
+    └── backend/
+        ├── pom.xml
+        └── src/
+            ├── main/
+            └── test/
 ```
 
-## Prerequisites
+## Run locally
+
+### Prerequisites
 
 - Java 21
 - PostgreSQL
 - Git
 
-## Database Configuration
+### Configure PostgreSQL
 
 1. Create a PostgreSQL database named `trustvault`.
-2. Configure the database URL and username in `application.properties`.
-3. Set the `DB_PASSWORD` environment variable to your local PostgreSQL password.
+2. Check `backend/backend/src/main/resources/application.properties` and set the local JDBC URL and username as appropriate.
+3. Set `DB_PASSWORD` in the shell where you will run the application. Do not commit a real password to source control.
 
-Example:
-
-```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/trustvault
-spring.datasource.username=postgres
-spring.datasource.password=${DB_PASSWORD}
-server.port=8080
-```
-
-Do not commit passwords or other secrets to GitHub.
-
-## Run the Application
-
-Open PowerShell in the `backend/backend` directory.
-
-Set your database password for the current PowerShell session:
+PowerShell example (prompts securely for the local PostgreSQL password):
 
 ```powershell
-$env:DB_PASSWORD = "YOUR_LOCAL_DATABASE_PASSWORD"
+$secure = Read-Host "Enter your local PostgreSQL password" -AsSecureString
+$env:DB_PASSWORD = [System.Net.NetworkCredential]::new("", $secure).Password
+Remove-Variable secure
 ```
 
-Replace the placeholder with your actual local password. Do not share it.
+### Run the application
 
-Run automated tests:
-
-```powershell
-.\mvnw.cmd test
-```
-
-Start the backend:
+From the `backend/backend` directory:
 
 ```powershell
 .\mvnw.cmd spring-boot:run
 ```
 
-The application is configured to run on port `8080`.
+The local application uses port `8080` unless configured otherwise.
 
-## Security
+### Run tests
 
-- Authentication is required for protected endpoints.
-- Role-based authorization protects administrator functions.
-- Document permissions control access to shared documents.
-- Passwords are hashed rather than stored as plaintext.
-- Audit logs help track relevant document and permission activities.
-- Environment variables are used to keep database passwords out of application configuration.
-
-## Testing
-
-Run the backend test suite:
+From the `backend/backend` directory, set `DB_PASSWORD` in the current PowerShell session first, then run:
 
 ```powershell
 .\mvnw.cmd test
 ```
 
-The existing automated tests check authorization for administrative audit logs, including unauthenticated and forbidden requests.
+The latest test run reported 16 tests, 0 failures, and 0 errors. Re-run tests after changing the code or configuration.
 
-## Future Improvements
+## API overview
 
-- Build a user-friendly frontend.
-- Add more automated tests for document permissions and file validation.
-- Deploy using HTTPS and secure production configuration.
-- Improve monitoring and audit-log reporting.
-
-## Project Status
-
-The backend implementation and automated security tests have been developed. Additional features and deployment requirements should be verified against the original hiring challenge specification.
-
-
-## Live Deployment
-
-Base URL: https://trustvault-z11k.onrender.com
-
-Health check: https://trustvault-z11k.onrender.com/api/health
-
-## API Endpoints
-
-All protected endpoints require authentication.
+All endpoints other than the explicitly permitted health and authentication routes require authentication.
 
 | Method | Endpoint | Purpose |
 |---|---|---|
-| POST | `/api/auth/register` | Register a user |
-| POST | `/api/auth/login` | Log in |
-| GET | `/api/health` | Check API health |
-| POST | `/api/documents/upload` | Upload a document |
-| GET | `/api/documents/search` | Search accessible documents |
-| GET | `/api/documents/{id}/download` | Download a document |
-| PUT | `/api/documents/{id}` | Edit a document |
-| DELETE | `/api/documents/{id}` | Delete a document |
-| POST | `/api/documents/{id}/permissions` | Grant document permission |
-| DELETE | `/api/documents/{id}/permissions/{email}` | Revoke document permission |
-| GET | `/api/admin/audit-logs` | View audit logs as an administrator |
+| `GET` | `/api/health` | Health check |
+| `POST` | `/api/auth/register` | Register a user |
+| `POST` | `/api/auth/login` | Authenticate using the application's configured login flow |
+| `GET` | `/api/documents` | List documents owned by the signed-in user and documents shared with `READ` or `EDIT` access |
+| `POST` | `/api/documents/upload` | Upload a document (`multipart/form-data`) |
+| `GET` | `/api/documents/search` | Search by name, owner, category, and date range |
+| `GET` | `/api/documents/{documentId}/download` | Download after owner/permission authorization |
+| `PUT` | `/api/documents/{documentId}` | Edit metadata with owner or `EDIT` permission |
+| `DELETE` | `/api/documents/{documentId}` | Delete a document; owner only |
+| `POST` | `/api/documents/{documentId}/permissions` | Grant document-level `READ` or `EDIT` permission as owner |
+| `DELETE` | `/api/documents/{documentId}/permissions/{userEmail}` | Revoke a user's document permission as owner |
+| `GET` | `/api/admin/audit-logs` | View audit logs; administrator only |
 
-**Note:** Confirm each endpoint's HTTP method and request format against the controller implementation before relying on this table. Document upload uses multipart form data; permission requests use JSON.
+The exact request fields and response schemas should be checked in the corresponding controller methods before integrating another client.
+
+## Security notes and limitations
+
+- Authorization is enforced by the backend; hiding a button or omitting a document from the UI is not a substitute for API authorization.
+- Upload validation reduces risk but is not malware scanning and does not guarantee files are harmless.
+- Audit logs stored in the same database are not tamper-proof against a sufficiently privileged database administrator.
+- **Deployment storage limitation:** uploaded files are stored in the application's `uploads` directory. The live deployment has exhibited missing-file `404` responses after deployment/restart-related changes. Do not assume uploaded files persist across redeploys or restarts unless persistent storage or external object storage has been configured and verified. For reliable production use, configure durable file storage and test restore/persistence behavior.
+- Automated tests are useful evidence but do not prove every possible security case. Test the deployed service and review logs before production use.
+
+## Security threat model and AI prompt log
+
+See [`THREATS.md`](THREATS.md) for the threat model and [`PROMPTS.md`](PROMPTS.md) for a retrospective summary of AI-assisted development and testing tasks.
