@@ -92,6 +92,26 @@ th{font-size:12px;color:var(--muted);text-transform:uppercase}
       <button type="submit" style="width:100%">Sign in</button>
     </form>
     <p class="muted small">Use your existing TrustVault account. Passwords are kept only in this page's memory and are not saved to local storage.</p>
+
+    <hr style="border:0;border-top:1px solid var(--line);margin:22px 0">
+    <h2>Create an account</h2>
+    <form id="registerForm">
+      <div class="field">
+        <label for="regName">Full name</label>
+        <input id="regName" type="text" required maxlength="100">
+      </div>
+      <div class="field">
+        <label for="regEmail">Email address</label>
+        <input id="regEmail" type="email" required autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="regPassword">Password (at least 8 characters)</label>
+        <input id="regPassword" type="password" required minlength="8" autocomplete="new-password">
+      </div>
+
+      <button type="submit" class="secondary" style="width:100%">Create account</button>
+    </form>
+    <p class="muted small">Admin accounts are provisioned separately and cannot be created through public registration. Document access is still checked by ownership and per-document permissions.</p>
   </section>
 
   <section id="app" class="hidden">
@@ -238,6 +258,38 @@ async function api(path, options={}) {
   return type.includes("application/json") ? response.json() : response;
 }
 
+el("registerForm").addEventListener("submit", async event => {
+  event.preventDefault();
+
+  const payload = {
+    name: el("regName").value.trim(),
+    email: el("regEmail").value.trim(),
+    password: el("regPassword").value
+  };
+
+  try {
+    const response = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data.error || ("HTTP " + response.status));
+    }
+
+    alert("Account created as " + data.role + ". Please sign in.");
+    el("email").value = payload.email;
+    el("password").value = "";
+    el("regName").value = "";
+    el("regEmail").value = "";
+    el("regPassword").value = "";
+
+  } catch (error) {
+    alert("Registration failed: " + error.message);
+  }
+});
 el("loginForm").addEventListener("submit", async event => {
   event.preventDefault();
 

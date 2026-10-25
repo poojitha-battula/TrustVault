@@ -28,6 +28,7 @@ public class AuthController {
         String name = request.get("name");
         String email = request.get("email");
         String password = request.get("password");
+        String role = "VIEWER";
 
         if (name == null || name.isBlank()
                 || email == null || email.isBlank()
@@ -36,6 +37,8 @@ public class AuthController {
                     "error", "Name, email and password of at least 8 characters are required"
             ));
         }
+
+
 
         email = email.trim().toLowerCase();
 
@@ -48,7 +51,7 @@ public class AuthController {
                 name.trim(),
                 email,
                 passwordEncoder.encode(password),
-                "VIEWER"
+                role
         );
 
         User savedUser = userRepository.save(user);
